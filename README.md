@@ -9,7 +9,6 @@ The JavaScript Memory Game is a classic card-matching game where the player need
 - Moves counter
 - Winning message
 - Restart button
-- Flip animation for cards
 
 ## Usage
 
