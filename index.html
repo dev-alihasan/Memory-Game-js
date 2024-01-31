@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Memory Game</title>
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Dosis:wght@300&display=swap");
+      body {
+        font-family: "Dosis", sans-serif;
+        text-align: center;
+        margin: 20px;
+        overflow: hidden;
+      }
+
+      h1 {
+        color: #333;
+      }
+
+      #message {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+      }
+
+      #game-board {
+        margin-bottom: 20px;
+      }
+
+      .card {
+        width: 60px;
+        height: 60px;
+        margin: 10px;
+        display: inline-block;
+        font-size: 24px;
+        text-align: center;
+        cursor: pointer;
+        background-color: #eee;
+        border: 2px solid #ccc;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+      }
+
+      .card:hover {
+        background-color: #ddd;
+      }
+
+      #moves,
+      #timer {
+        font-weight: bold;
+        color: #333;
+      }
+
+      button {
+        font-size: 16px;
+        padding: 10px;
+        cursor: pointer;
+        background-color: #afb6b0;
+        color: #fff;
+        border: none;
+        border-radius: 1em;
+        transition: background-color 0.3s;
+      }
+
+      button:hover {
+        background-color: #202020;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Memory Game</h1>
+    <div id="message"></div>
+    <div id="game-board"></div>
+    <p>Moves: <span id="moves">0</span></p>
+    <p>Time: <span id="timer">0</span> seconds</p>
+    <button onclick="restartGame()">Restart Game</button>
+
+    <script>
+      let pairs, flippedCards, locked, moves, timer, intervalId;
+
+      function generateRandomPairs(size) {
+        const numbers = Array.from({ length: size }, (_, index) => index + 1);
+        const pairs = [...numbers, ...numbers];
+        return pairs.sort(() => Math.random() - 0.5);
+      }
+
+      function createGameBoard(size) {
+        pairs = generateRandomPairs(size);
+        flippedCards = [];
+        locked = false;
+        moves = 0;
+        timer = 0;
+
+        updateMoves();
+        updateTimer();
+        clearInterval(intervalId);
+
+        const gameBoard = document.getElementById("game-board");
+        gameBoard.innerHTML = "";
+
+        pairs.forEach((value, index) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.dataset.index = index;
+          card.textContent = "?";
+          card.addEventListener("click", handleCardClick);
+          gameBoard.appendChild(card);
+        });
+      }
+
+      function handleCardClick(event) {
+        if (locked) return;
+
+        const card = event.target;
+        const index = card.dataset.index;
+
+        if (flippedCards.length < 2 && !flippedCards.includes(index)) {
+          card.textContent = pairs[index];
+          flippedCards.push(index);
+
+          if (flippedCards.length === 2) {
+            locked = true;
+            setTimeout(checkMatch, 1000);
+            moves++;
+            updateMoves();
+          }
+        }
+      }
+
+      function checkMatch() {
+        const [index1, index2] = flippedCards;
+        const card1 = document.querySelector(`[data-index="${index1}"]`);
+        const card2 = document.querySelector(`[data-index="${index2}"]`);
+
+        if (pairs[index1] === pairs[index2]) {
+          card1.style.backgroundColor = "#7CFC00";
+          card2.style.backgroundColor = "#7CFC00";
+        } else {
+          card1.textContent = "?";
+          card2.textContent = "?";
+        }
+
+        flippedCards = [];
+        locked = false;
+
+        if (
+          document.querySelectorAll(
+            '.card[style*="background-color: #7CFC00;"]'
+          ).length === pairs.length
+        ) {
+          clearInterval(intervalId);
+          displayWinningMessage();
+        }
+      }
+
+      function updateMoves() {
+        document.getElementById("moves").textContent = moves;
+      }
+
+      function updateTimer() {
+        document.getElementById("timer").textContent = timer;
+      }
+
+      function startTimer() {
+        intervalId = setInterval(() => {
+          timer++;
+          updateTimer();
+        }, 1000);
+      }
+
+      function displayWinningMessage() {
+        const messageElement = document.getElementById("message");
+        messageElement.textContent = `Congratulations! You completed the game in ${moves} moves and ${timer} seconds.`;
+      }
+
+      function restartGame() {
+        const messageElement = document.getElementById("message");
+        messageElement.textContent = "";
+        createGameBoard(pairs.length / 2);
+        startTimer();
+      }
+
+      const gridSize = 16;
+      createGameBoard(gridSize);
+      startTimer();
+    </script>
+  </body>
+</html>
